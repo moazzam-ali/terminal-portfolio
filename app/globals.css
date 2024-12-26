@@ -6,6 +6,62 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
+/* custom scrolbar */
+/* width */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s;
+
+    border-radius: 1rem;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #444cf7;
+}
+
+.bg-main {
+    width: 100vw;
+    height: 100vh;
+    position: absolute;
+    top: 0;
+    left: 0;
+
+    z-index: -1;
+
+    background-color: #fcfcfc;
+    opacity: 0.1;
+    background: radial-gradient(
+            circle,
+            transparent 20%,
+            #fcfcfc 20%,
+            #fcfcfc 80%,
+            transparent 80%,
+            transparent
+        ),
+        radial-gradient(
+                circle,
+                transparent 20%,
+                #fcfcfc 20%,
+                #fcfcfc 80%,
+                transparent 80%,
+                transparent
+            )
+            12.5px 12.5px,
+        linear-gradient(#444cf7 1px, transparent 1px) 0 -0.5px,
+        linear-gradient(90deg, #444cf7 1px, #fcfcfc 1px) -0.5px 0;
+    background-size: 25px 25px, 25px 25px, 12.5px 12.5px, 12.5px 12.5px;
+}
+
 @layer base {
     :root {
         --background: 0 0% 100%;
