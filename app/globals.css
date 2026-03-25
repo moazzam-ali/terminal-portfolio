@@ -2,124 +2,191 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Base ─────────────────────────────── */
 body {
     font-family: Arial, Helvetica, sans-serif;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
 }
 
-/* custom scrolbar */
-/* width */
+/* ── Scrollbar ────────────────────────── */
 ::-webkit-scrollbar {
-    width: 6px;
+    width: 5px;
 }
-
-/* Track */
 ::-webkit-scrollbar-track {
     background: transparent;
 }
-/* Handle */
 ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.5);
-    transition: all 0.2s;
-
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 1rem;
+    transition: all 0.2s;
 }
-
-/* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-    background: #444cf7;
+    background: #dc2626;
 }
 
-.bg-main {
+/* ── Terminal Container ───────────────── */
+.terminal-container {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    background: rgba(10, 10, 10, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    box-shadow:
+        0 0 40px rgba(220, 38, 38, 0.06),
+        0 25px 60px rgba(0, 0, 0, 0.7),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(20px);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.terminal-windowed {
+    width: 100%;
+    max-width: 720px;
+    height: 75vh;
+    max-height: 700px;
+}
+
+.terminal-fullscreen {
+    position: fixed;
+    inset: 0;
     width: 100vw;
     height: 100vh;
-    position: absolute;
-    top: 0;
-    left: 0;
-
-    z-index: -1;
-
-    background-color: #fcfcfc;
-    opacity: 0.1;
-    background: radial-gradient(
-            circle,
-            transparent 20%,
-            #fcfcfc 20%,
-            #fcfcfc 80%,
-            transparent 80%,
-            transparent
-        ),
-        radial-gradient(
-                circle,
-                transparent 20%,
-                #fcfcfc 20%,
-                #fcfcfc 80%,
-                transparent 80%,
-                transparent
-            )
-            12.5px 12.5px,
-        linear-gradient(#444cf7 1px, transparent 1px) 0 -0.5px,
-        linear-gradient(90deg, #444cf7 1px, #fcfcfc 1px) -0.5px 0;
-    background-size: 25px 25px, 25px 25px, 12.5px 12.5px, 12.5px 12.5px;
+    max-width: none;
+    max-height: none;
+    border-radius: 0;
+    z-index: 50;
 }
 
+/* ── Terminal Header ──────────────────── */
+.terminal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: rgba(20, 20, 20, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.terminal-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.terminal-toggle-btn:hover {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.4);
+    color: #dc2626;
+}
+
+/* ── Terminal Body ────────────────────── */
+.terminal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 20px;
+    font-family: var(--font-geist-mono), "Courier New", monospace;
+    scroll-behavior: smooth;
+}
+
+/* ── Terminal Input Area ──────────────── */
+.terminal-input-area {
+    padding: 12px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(15, 15, 15, 0.6);
+    flex-shrink: 0;
+}
+
+/* ── Command Output Line ─────────────── */
+.command-line-output {
+    margin-bottom: 2px;
+    font-family: var(--font-geist-mono), "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+/* ── Blinking Cursor ─────────────────── */
+.blinking-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 16px;
+    background: #dc2626;
+    animation: blink 1s step-end infinite;
+    flex-shrink: 0;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* ── Scan Lines Effect ────────────────── */
+.scan-lines {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+    );
+    opacity: 0.4;
+}
+
+/* ── Fade In Animation ────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.25s ease-out;
+}
+
+/* ── Selection ────────────────────────── */
+::selection {
+    background: rgba(220, 38, 38, 0.3);
+    color: #fff;
+}
+
+/* ── Shadcn Variables ─────────────────── */
 @layer base {
     :root {
-        --background: 0 0% 100%;
-        --foreground: 0 0% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 0 0% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 0 0% 3.9%;
-        --primary: 0 0% 9%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 0 0% 96.1%;
-        --secondary-foreground: 0 0% 9%;
-        --muted: 0 0% 96.1%;
-        --muted-foreground: 0 0% 45.1%;
-        --accent: 0 0% 96.1%;
-        --accent-foreground: 0 0% 9%;
+        --background: 0 0% 0%;
+        --foreground: 0 0% 100%;
+        --card: 0 0% 4%;
+        --card-foreground: 0 0% 100%;
+        --popover: 0 0% 4%;
+        --popover-foreground: 0 0% 100%;
+        --primary: 0 72% 51%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 0 0% 10%;
+        --secondary-foreground: 0 0% 100%;
+        --muted: 0 0% 15%;
+        --muted-foreground: 0 0% 64%;
+        --accent: 0 72% 51%;
+        --accent-foreground: 0 0% 100%;
         --destructive: 0 84.2% 60.2%;
         --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 89.8%;
-        --input: 0 0% 89.8%;
-        --ring: 0 0% 3.9%;
+        --border: 0 0% 15%;
+        --input: 0 0% 15%;
+        --ring: 0 72% 51%;
         --radius: 0.5rem;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
     }
 
-    .dark {
-        --background: 0 0% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 0 0% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 0 0% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 0 0% 9%;
-        --secondary: 0 0% 14.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 0 0% 14.9%;
-        --muted-foreground: 0 0% 63.9%;
-        --accent: 0 0% 14.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 0 0% 14.9%;
-        --input: 0 0% 14.9%;
-        --ring: 0 0% 83.1%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-    }
-}
-
-@layer base {
     * {
         @apply border-border;
     }

@@ -1,19 +1,197 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { CommandLine } from "./CommandLine";
 import { CommandOutput } from "./CommandOutput";
-import { TerminalIcon } from "lucide-react";
+import { TerminalIcon, Maximize2, Minimize2 } from "lucide-react";
 
-const INITIAL_MESSAGE = `
-Hi, I'm Moazzam Ali, a frontend engineer. I love creating engaging and interactive web experiences.
-Type 'help' to see available commands.
+const WELCOME_ART = `
+ ╔══════════════════════════════════════════╗
+ ║     __  __                                ║
+ ║    |  \\/  | ___   __ _ __________ _ _ __ ___   ║
+ ║    | |\\/| |/ _ \\ / _\` |_  /_  / _\` | '_ \` _ \\  ║
+ ║    | |  | | (_) | (_| |/ / / / (_| | | | | | | ║
+ ║    |_|  |_|\\___/ \\__,_/___/___\\__,_|_| |_| |_| ║
+ ║                                          ║
+ ╚══════════════════════════════════════════╝
+
+ Welcome! I'm Moazzam Ali — Frontend Engineer.
+ Type 'help' to see what I can do. ↵
 `;
 
+const COMMANDS = {
+    help: `
+┌─────────────────────────────────────────┐
+│  AVAILABLE COMMANDS                     │
+├─────────────────────────────────────────┤
+│  about       → Who am I                │
+│  skills      → Technical skills         │
+│  projects    → Recent work              │
+│  experience  → Work history             │
+│  education   → Academic background      │
+│  contact     → Get in touch             │
+│  3d          → 3D & animation skills    │
+│  hobbies     → Life outside code        │
+│  social      → Social profiles          │
+│  resume      → Download resume          │
+│  theme       → Toggle scan lines        │
+│  clear       → Clear terminal           │
+└─────────────────────────────────────────┘`,
+
+    about: `
+┌─ ABOUT ──────────────────────────────────┐
+
+  I'm Moazzam Ali, a passionate frontend
+  developer building engaging & interactive
+  web experiences.
+
+  I thrive on exploring new tech and the
+  satisfaction of overcoming challenges.
+
+  My expertise extends to creating immersive
+  3D websites, blending web development and
+  interactive design to craft unique UX.
+
+└──────────────────────────────────────────┘`,
+
+    skills: `
+┌─ TECHNICAL SKILLS ───────────────────────┐
+│                                          │
+│  ▸ Frontend                              │
+│    Next.js · React · Gatsby · TypeScript │
+│                                          │
+│  ▸ Styling                               │
+│    Tailwind CSS · SCSS · Styled-Comp.    │
+│                                          │
+│  ▸ UI Libraries                          │
+│    Ant Design · Shadcn · Chakra UI       │
+│                                          │
+│  ▸ Backend                               │
+│    Node.js · Express.js                  │
+│                                          │
+│  ▸ 3D & Animation                        │
+│    Three.js · Spline · GSAP · Framer     │
+│                                          │
+│  ▸ Other                                 │
+│    Git · Webflow · GraphQL · REST APIs   │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    projects: `
+┌─ RECENT PROJECTS ────────────────────────┐
+│                                          │
+│  01  3D Product Showcase                 │
+│      Interactive 3D viewer with Three.js │
+│      and Next.js                         │
+│                                          │
+│  02  E-commerce Platform                 │
+│      Responsive store with Gatsby +      │
+│      Shopify integration                 │
+│                                          │
+│  03  Portfolio Website                   │
+│      Animated transitions with Framer    │
+│      Motion                              │
+│                                          │
+│  04  Dashboard Application               │
+│      Data viz with React + D3.js         │
+│                                          │
+│  05  Blog Platform                       │
+│      Performant blog with Next.js + MDX  │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    education: `
+┌─ EDUCATION ──────────────────────────────┐
+│                                          │
+│  BS Computer Science                     │
+│  University of Engineering & Technology  │
+│  Taxila — Graduated with Honors          │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    experience: `
+┌─ WORK EXPERIENCE ────────────────────────┐
+│                                          │
+│  ● Senior Frontend Dev @ TechInnovate   │
+│    2021 – Present                        │
+│    Lead development with React & Next.js │
+│    Implemented 3D elements with Three.js │
+│    Mentored juniors & conducted reviews  │
+│                                          │
+│  ● Frontend Dev @ WebSolutions Inc.      │
+│    2019 – 2021                           │
+│    Built client sites with Gatsby        │
+│    Improved performance & SEO rankings   │
+│    Pixel-perfect UI implementations      │
+│                                          │
+│  ● Junior Web Dev @ StartupHub           │
+│    2018 – 2019                           │
+│    Built interactive startup prototypes  │
+│    Contributed to component library      │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    contact: `
+┌─ CONTACT ────────────────────────────────┐
+│                                          │
+│  ✉  moazzam435j@gmail.com               │
+│  ◆  github.com/moazzam-ali              │
+│  ☎  +923165518392                        │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    "3d": `
+┌─ 3D WEB DEVELOPMENT ────────────────────┐
+│                                          │
+│  ▸ Three.js — 3D graphics & animations  │
+│  ▸ Spline — 3D model integration        │
+│  ▸ GSAP — Smooth transitions            │
+│  ▸ Framer Motion — React animations     │
+│  ▸ WebGL — Custom shader effects        │
+│  ▸ Performance optimization for 3D      │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    hobbies: `
+┌─ HOBBIES & INTERESTS ───────────────────┐
+│                                          │
+│  ◇ Exploring new web technologies       │
+│  ◇ Contributing to open-source          │
+│  ◇ Tech meetups & conferences           │
+│  ◇ 3D modeling & digital art            │
+│  ◇ Reading tech blogs                   │
+│  ◇ LeetCode & HackerRank challenges    │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    social: `
+┌─ SOCIAL PROFILES ────────────────────────┐
+│                                          │
+│  ▸ LinkedIn  linkedin.com/in/moazzam-ali │
+│  ▸ Twitter   twitter.com/moazzam_dev     │
+│  ▸ CodePen   codepen.io/moazzam-ali      │
+│  ▸ Dev.to    dev.to/moazzam_ali          │
+│                                          │
+└──────────────────────────────────────────┘`,
+
+    resume: `
+┌─ RESUME ─────────────────────────────────┐
+│                                          │
+│  Download: example.com/moazzam-resume.pdf│
+│  (placeholder — update with real link)   │
+│                                          │
+└──────────────────────────────────────────┘`,
+};
+
 export function Terminal() {
-    const [history, setHistory] = useState([INITIAL_MESSAGE]);
+    const [history, setHistory] = useState([{ type: "output", text: WELCOME_ART }]);
     const [inputValue, setInputValue] = useState("");
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [scanLines, setScanLines] = useState(true);
+    const [commandHistory, setCommandHistory] = useState([]);
+    const [historyIndex, setHistoryIndex] = useState(-1);
     const terminalRef = useRef(null);
+    const inputRef = useRef(null);
 
     useEffect(() => {
         if (terminalRef.current) {
@@ -21,208 +199,120 @@ export function Terminal() {
         }
     }, [history]);
 
+    // Focus input when clicking anywhere in terminal
+    const handleTerminalClick = useCallback(() => {
+        inputRef.current?.focus();
+    }, []);
+
     const handleCommand = (command) => {
-        setHistory((prev) => [...prev, `$ ${command}`]);
+        const trimmed = command.trim();
+        if (!trimmed) return;
 
-        switch (command.toLowerCase()) {
-            case "help":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Available commands:
-- about: Learn more about me
-- skills: View my technical skills
-- projects: See my recent projects
-- education: View my educational background
-- experience: Check out my work experience
-- contact: Get my contact information
-- 3d: Learn about my 3D web development skills
-- hobbies: Discover my interests outside of coding
-- clear: Clear the terminal
-- social: View my social media profiles
-- resume: Download my resume (placeholder)
-`,
-                ]);
-                break;
-            case "about":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-I'm Moazzam Ali, a passionate frontend developer with a love for creating engaging and interactive web experiences. 
-I thrive on the excitement of trying new technologies and the satisfaction of overcoming challenges. 
-The dopamine rush I get when completing even small feats keeps me motivated and always pushing forward.
+        // Add to command history for arrow key navigation
+        setCommandHistory((prev) => [...prev, trimmed]);
+        setHistoryIndex(-1);
 
-As a frontend engineer, I'm constantly exploring the latest web technologies and frameworks to build 
-responsive, accessible, and performant user interfaces. I have a keen eye for design and enjoy bringing 
-creative concepts to life through code.
+        // Show the command in output
+        setHistory((prev) => [...prev, { type: "command", text: trimmed }]);
 
-My expertise extends to creating immersive 3D websites, blending the worlds of web development and 
-interactive design to craft unique user experiences that stand out in the digital landscape.
-`,
-                ]);
-                break;
-            case "skills":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Technical Skills:
-- Frontend: Next.js, React.js, Gatsby, TypeScript, JavaScript (ES6+)
-- Styling: Tailwind CSS, SCSS, Styled-Components, CSS3
-- UI Libraries: Ant Design, Shadcn, Chakra UI
-- Backend: Node.js, Express.js
-- 3D & Animation: Three.js, Spline, GSAP, Framer Motion
-- Version Control: Git, GitHub
-- CMS: Webflow
-- Responsive Design
-- Web Performance Optimization
-- Cross-Browser Compatibility
-- Accessibility (a11y) Best Practices
-- RESTful APIs
-- GraphQL
-`,
-                ]);
-                break;
-            case "projects":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Recent Projects:
-1. 3D Product Showcase: Built an interactive 3D product viewer using Three.js and Next.js
-2. E-commerce Platform: Developed a responsive online store with Gatsby and Shopify integration
-3. Portfolio Website: Created a personal portfolio site with animated transitions using Framer Motion
-4. Dashboard Application: Constructed a data visualization dashboard with React and D3.js
-5. Blog Platform: Built a performant blog using Next.js with MDX for content management
-`,
-                ]);
-                break;
-            case "education":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Education:
-- Bachelor of Science in Computer Science
-  University of Engineering and Technology, Taxila
-  Graduated with honors
-`,
-                ]);
-                break;
-            case "experience":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Work Experience:
-1. Senior Frontend Developer at TechInnovate (2021 - Present)
-   - Lead development of responsive web applications using React and Next.js
-   - Implemented 3D elements in web projects using Three.js and Spline
-   - Mentored junior developers and conducted code reviews
+        const cmd = trimmed.toLowerCase();
 
-2. Frontend Developer at WebSolutions Inc. (2019 - 2021)
-   - Developed and maintained client websites using Gatsby and Webflow
-   - Improved site performance and SEO rankings for multiple projects
-   - Collaborated with designers to implement pixel-perfect UIs
+        if (cmd === "clear") {
+            setHistory([]);
+            return;
+        }
 
-3. Junior Web Developer at StartupHub (2018 - 2019)
-   - Assisted in building interactive prototypes for startup pitches
-   - Gained experience with React and modern JavaScript practices
-   - Contributed to the company's internal component library
-`,
-                ]);
-                break;
-            case "contact":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Contact Information:
-Email: moazzam435j@gmail.com
-GitHub: github.com/moazzam-ali
-Phone: +923165518392
-`,
-                ]);
-                break;
-            case "3d":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-3D Web Development Skills:
-- Three.js for creating 3D graphics and animations in the browser
-- Spline for designing and integrating 3D models into web projects
-- GSAP (GreenSock Animation Platform) for smooth animations and transitions
-- Framer Motion for adding fluid animations to React components
-- WebGL shaders for custom visual effects
-- Optimizing 3D performance for various devices and browsers
-`,
-                ]);
-                break;
-            case "hobbies":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Hobbies and Interests:
-- Exploring new web technologies and frameworks
-- Contributing to open-source projects
-- Attending tech meetups and conferences
-- 3D modeling and digital art
-- Reading tech blogs and staying updated with industry trends
-- Solving coding challenges on platforms like LeetCode and HackerRank
-`,
-                ]);
-                break;
-            case "social":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Social Media Profiles:
-- LinkedIn: linkedin.com/in/moazzam-ali (placeholder)
-- Twitter: twitter.com/moazzam_dev (placeholder)
-- CodePen: codepen.io/moazzam-ali (placeholder)
-- Dev.to: dev.to/moazzam_ali (placeholder)
-`,
-                ]);
-                break;
-            case "resume":
-                setHistory((prev) => [
-                    ...prev,
-                    `
-Resume download link: 
-https://example.com/moazzam-ali-resume.pdf (placeholder)
+        if (cmd === "theme") {
+            setScanLines((prev) => !prev);
+            setHistory((prev) => [
+                ...prev,
+                { type: "output", text: `Scan lines ${!scanLines ? "enabled" : "disabled"}.` },
+            ]);
+            return;
+        }
 
-Note: This is a placeholder link. Replace it with your actual resume download link when available.
-`,
-                ]);
-                break;
-            case "clear":
-                setHistory([]);
-                break;
-            default:
-                setHistory((prev) => [
-                    ...prev,
-                    `Command not found: ${command}. Type 'help' for a list of available commands.`,
-                ]);
+        if (COMMANDS[cmd]) {
+            setHistory((prev) => [...prev, { type: "output", text: COMMANDS[cmd] }]);
+        } else {
+            setHistory((prev) => [
+                ...prev,
+                {
+                    type: "error",
+                    text: `Command not found: '${trimmed}'. Type 'help' for available commands.`,
+                },
+            ]);
         }
     };
 
+    const handleHistoryNavigation = (direction) => {
+        if (commandHistory.length === 0) return;
+
+        let newIndex;
+        if (direction === "up") {
+            newIndex = historyIndex === -1 ? commandHistory.length - 1 : Math.max(0, historyIndex - 1);
+        } else {
+            newIndex = historyIndex === -1 ? -1 : historyIndex + 1;
+            if (newIndex >= commandHistory.length) newIndex = -1;
+        }
+
+        setHistoryIndex(newIndex);
+        setInputValue(newIndex === -1 ? "" : commandHistory[newIndex]);
+    };
+
     return (
-        <div className="bg-blue-900 text-white p-4 rounded-lg shadow-lg w-full max-w-2xl mx-auto h-[80vh] flex flex-col">
-            <div className="flex items-center mb-4">
-                <TerminalIcon className="mr-2" />
-                <h1 className="text-xl font-bold">Moazzam Ali's Terminal</h1>
+        <div
+            onClick={handleTerminalClick}
+            className={`terminal-container ${isFullscreen ? "terminal-fullscreen" : "terminal-windowed"}`}
+        >
+            {/* Scan line overlay */}
+            {scanLines && <div className="scan-lines" />}
+
+            {/* Terminal header bar */}
+            <div className="terminal-header">
+                <div className="flex items-center gap-2">
+                    {/* Traffic light dots */}
+                    <div className="flex items-center gap-1.5 mr-3">
+                        <span className="w-3 h-3 rounded-full bg-red-500 inline-block" />
+                        <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block opacity-40" />
+                        <span className="w-3 h-3 rounded-full bg-green-500 inline-block opacity-40" />
+                    </div>
+                    <TerminalIcon size={16} className="text-red-500" />
+                    <span className="text-sm font-mono text-neutral-400 select-none">
+                        moazzam@portfolio:~$
+                    </span>
+                </div>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsFullscreen((f) => !f);
+                    }}
+                    className="terminal-toggle-btn"
+                    title={isFullscreen ? "Minimize" : "Maximize"}
+                >
+                    {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
             </div>
-            <div
-                ref={terminalRef}
-                className="flex-1 overflow-y-auto mb-4 font-mono"
-            >
+
+            {/* Terminal body */}
+            <div ref={terminalRef} className="terminal-body">
                 {history.map((item, index) => (
-                    <CommandOutput key={index} output={item} />
+                    <CommandOutput key={index} item={item} />
                 ))}
             </div>
-            <CommandLine
-                value={inputValue}
-                onChange={setInputValue}
-                onSubmit={(value) => {
-                    handleCommand(value);
-                    setInputValue("");
-                }}
-            />
+
+            {/* Input line */}
+            <div className="terminal-input-area">
+                <CommandLine
+                    ref={inputRef}
+                    value={inputValue}
+                    onChange={setInputValue}
+                    onSubmit={(value) => {
+                        handleCommand(value);
+                        setInputValue("");
+                    }}
+                    onHistoryNav={handleHistoryNavigation}
+                />
+            </div>
         </div>
     );
 }

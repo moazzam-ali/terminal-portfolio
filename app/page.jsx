@@ -1,12 +1,10 @@
 import { Terminal } from "../src/components/Terminal";
+import { PixelBackground } from "../src/components/PixelBackground";
 
 export default function Home() {
     return (
-        <main
-            style={{ height: "100vh" }}
-            className="h-screen bg-blue-100 flex items-center justify-center p-4"
-        >
-            <div className="bg-main"></div>
+        <main className="h-screen bg-black flex items-center justify-center p-4 overflow-hidden relative">
+            <PixelBackground />
             <Terminal />
         </main>
     );
